@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">NFC Test</string>
+    <string name="nfc_test">NFC Test</string>
+    <string name="enter_here">Enter here</string>
+    <string name="generate">Generate</string>
+    <string name="beam">Beam</string>
+    <string name="enter_text">Enter text:</string>
+</resources>
