@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         String AID = "A0000002471001";
         String SELECT_INS = "A4";
         String DEFAULT_CLA = "00";
-        Integer MIN_APDU_LENGTH = 12;
+        Integer MIN_APDU_LENGTH = 12; 
 
         @Override
         public byte[] processCommandApdu(byte[] apdu, Bundle extras) {
