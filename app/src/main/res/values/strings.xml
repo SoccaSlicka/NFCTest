@@ -5,4 +5,6 @@
     <string name="generate">Generate</string>
     <string name="beam">Beam</string>
     <string name="enter_text">Enter text:</string>
+    <string name="servicedesc">A service for utilizing NFC Unlock quickly without having to open the app</string>
+    <string name="aiddescription">Works with any NFC card reader</string>
 </resources>
