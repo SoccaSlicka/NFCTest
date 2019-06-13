@@ -14,6 +14,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.ArraySet;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.Button;
 
@@ -22,7 +24,10 @@ import java.lang.String;
 
 import android.widget.TextView;
 import android.view.View;
+
+import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public class HostCardEmulatorService extends HostApduService {
+    public static class HostCardEmulatorService extends HostApduService {
       /*public int onStartCommand(Intent intent, int flags, int startId)
         {
          IntentFilter filter = new IntentFilter();
@@ -130,12 +135,12 @@ public class MainActivity extends AppCompatActivity {
         String AID = "A0000002471001";
         String SELECT_INS = "A4";
         String DEFAULT_CLA = "00";
-        Integer MIN_APDU_LENGTH = 12; 
+        Integer MIN_APDU_LENGTH = 12;
 
         @Override
-        public byte[] processCommandApdu(byte[] apdu, Bundle extras) {
+        public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
 
-            tvNFCContent.setText(String.format("%40X", apdu));
+           /* tvNFCContent.setText(String.format("%40X", apdu));
 
             byte[] command = null;
             try {
@@ -144,13 +149,76 @@ public class MainActivity extends AppCompatActivity {
                 tvNFCContent.setText(NFC_ERROR);
             }
 
-            return command;
+            return command;*/
+
+            if (commandApdu == null) {
+                return Utils.hexStringToByteArray(STATUS_FAILED);
+            }
+            String hexCommandApdu = Utils.toHex(commandApdu);
+            if (hexCommandApdu.length() < MIN_APDU_LENGTH) {
+                return Utils.hexStringToByteArray(STATUS_FAILED);
+            }
+            if (hexCommandApdu.substring(0, 2) != DEFAULT_CLA) {
+                return Utils.hexStringToByteArray(CLA_NOT_SUPPORTED);
+            }
+            if (hexCommandApdu.substring(2, 4) != SELECT_INS) {
+                return Utils.hexStringToByteArray(INS_NOT_SUPPORTED);
+            }
+            if (hexCommandApdu.substring(10, 24) == AID)  {
+                return Utils.hexStringToByteArray(STATUS_SUCCESS);
+            }
+            else {
+                return Utils.hexStringToByteArray(STATUS_FAILED);
+            }
         }
+
         @Override
         public void onDeactivated(int reason) {
-            Toast.makeText(this, NFC_ERROR, Toast.LENGTH_LONG).show();
+           // Toast.makeText(this, NFC_ERROR, Toast.LENGTH_LONG).show();
+            Log.d(TAG, "onDeactivated: " + reason);
 
+        }
 
+        private static class Utils{
+
+            private static byte[] hexStringToByteArray(String data){
+
+                String HEX_CHARS = "0123456789ABCDEF";
+                byte[] result = ByteBuffer.allocate(4).putInt(data.length() / 2).array();
+
+                for (int i = 0; i < data.length(); i +=2){
+                    int firstIndex = HEX_CHARS.indexOf(data.charAt(i));
+                    int secondIndex = HEX_CHARS.indexOf(data.charAt(i+1));
+
+                    int octet =  firstIndex << 4 | secondIndex;
+                    Array.set(result, (i >> 1), (byte) octet);
+                }
+                return result;
+            }
+
+            private static String toHex(byte[] bytearray){
+
+                char[] HEX_CHARS_ARRAY = "0123456789ABCDEF".toCharArray();
+
+                StringBuffer result = new StringBuffer();
+                for (int i: bytearray
+                     ) {
+                    int octet = bytearray[i];
+                    int firstIndex = (octet & 0xF0) >>> 4;
+                    int secondIndex = octet & 0x0F;
+                    result.append(HEX_CHARS_ARRAY[firstIndex]);
+                    result.append(HEX_CHARS_ARRAY[secondIndex]);
+                }
+                int len = bytearray.length;
+                /*for (int i = 0; i < len; i++){
+                    int octet = bytearray[i];
+                    int firstIndex = (octet & 0xF0) >>> 4;
+                    int secondIndex = octet & 0x0F;
+                    result.append(HEX_CHARS_ARRAY[firstIndex]);
+                    result.append(HEX_CHARS_ARRAY[secondIndex]);
+                }*/
+                return result.toString();
+            }
         }
     }
 
